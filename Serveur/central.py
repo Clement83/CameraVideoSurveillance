@@ -44,6 +44,7 @@ class ThreadCamera(threading.Thread):
 		# Dialogue avec le client :
 		nom = self.getName()        # Chaque thread possède un nom
 		dateDetection = None
+		dateNextSms = None
 		try :
 			while 1:
 				
@@ -63,19 +64,20 @@ class ThreadCamera(threading.Thread):
 					# self.PrintMessage("alert 2")
 					self.InsertImageEvent(self.image_t)
 						
-				if self.motionDetecteur  == None :
-					self.motionDetecteur = MotionDetectorInstantaneous(self.image_t,150,logging)
-					
-				if self.motionDetecteur.somethingHasMoved(self.image_tmoin1,self.image_t) :
-					dateDetection = datetime.now() + timedelta(0,7)
-					self.PrintMessage("Detection mouvement sur la camera  : "+ str(self.numeroCam))
+					if self.motionDetecteur  == None :
+						self.motionDetecteur = MotionDetectorInstantaneous(self.image_t,150,logging)
 						
-				if not dateDetection == None and dateDetection < datetime.now() :
-					dateDetection = None
-					self.PrintMessage("Ecriture de l'evenement detecté de la cam : "+ str(self.numeroCam))
-					self.WriteImageEvent()
-					if self.numeroCam in config.numCamAlert :
-						urllib2.urlopen('http://yana.quintard.me/action.php?action=freeSms_sendSms&message=mouvement_sur_la_camera_'+str(self.numeroCam))
+					if dateDetection == None and self.motionDetecteur.somethingHasMoved(self.image_tmoin1,self.image_t) :
+						dateDetection = datetime.now() + timedelta(0,7)
+						self.PrintMessage("Detection mouvement sur la camera  : "+ str(self.numeroCam))
+							
+					if not dateDetection == None and dateDetection < datetime.now() :
+						dateDetection = None
+						self.PrintMessage("Ecriture de l'evenement detecté de la cam : "+ str(self.numeroCam))
+						self.WriteImageEvent()
+						if self.numeroCam in config.numCamAlert and (dateNextSms == None || dateNextSms < datetime.now()) :
+							dateNextSms = datetime.now() + timedelta(0,30)
+							urllib2.urlopen('http://yana.quintard.me/action.php?action=freeSms_sendSms&message=mouvement_sur_la_camera_'+str(self.numeroCam))
 					
 			
 				self.image_tmoin1 = self.image_t
