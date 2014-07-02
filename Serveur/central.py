@@ -75,7 +75,7 @@ class ThreadCamera(threading.Thread):
 						dateDetection = None
 						self.PrintMessage("Ecriture de l'evenement detecté de la cam : "+ str(self.numeroCam))
 						self.WriteImageEvent()
-						if self.numeroCam in config.numCamAlert and (dateNextSms == None || dateNextSms < datetime.now()) :
+						if self.numeroCam in config.numCamAlert and (dateNextSms == None or dateNextSms < datetime.now()) :
 							dateNextSms = datetime.now() + timedelta(0,30)
 							urllib2.urlopen('http://yana.quintard.me/action.php?action=freeSms_sendSms&message=mouvement_sur_la_camera_'+str(self.numeroCam))
 					
